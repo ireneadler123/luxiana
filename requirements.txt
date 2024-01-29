@@ -1,0 +1,5 @@
+transformers
+flask
+datetime
+torch
+pandas
