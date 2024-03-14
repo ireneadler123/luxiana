@@ -3,3 +3,5 @@ flask
 datetime
 torch
 pandas
+openai
+streamlit
