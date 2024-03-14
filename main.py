@@ -1,36 +1,54 @@
-from modules import *
-from flask import Flask, render_template, redirect, url_for
-from flask import request
-from flask_cors import CORS
+import streamlit as st
+import openai
+import datetime
+import time
 
-app = Flask(__name__)
-CORS(app)
+st.set_page_config(layout='wide', page_title='Học Tiếng Anh cùng trợ lý ảo Mia', page_icon='heart')
+# Set API key for OpenAI. Replace 'YOUR_OPENAI_API_KEY' with your actual API key.
+openai.api_key = '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'
 
-@app.route('/')
-def index():
-    ai = AI_information()
-    info = ai.info()
-    rs = request.args.get('result')
-    data = request.args.get('data')
-    return render_template('index.html', rs=rs, data=data, info=info)
+name = st.text_input('Hãy cho Mia xin tên của bạn nhé')
 
+def main():
+    if name:
+    # Greeting
+        if 0 <= datetime.datetime.now().hour <= 11:
+            greeting = f'chúc {name} buổi sáng tốt lành!'
+        elif  12 < datetime.datetime.now().hour <= 14:
+            greeting = f'chúc {name} buổi trưa tốt lành!'
+        elif  15 <= datetime.datetime.now().hour <= 17:
+            greeting = f'chúc {name} buổi chiều tốt lành!'
+        elif  18 <= datetime.datetime.now().hour <= 23:
+            greeting = f'chúc {name} buổi tối tốt lành!'
 
-@app.route('/process', methods=['POST'])
-def process():
-    src_lang = "en"
-    tgt_lang = "vi"
-    data = request.form.get('content')
-    trans = AI_Translation()
-    result = trans.translate_text(input_text=data, src_lang=src_lang, tgt_lang=tgt_lang)
-    return redirect(url_for('translation', result=result, data=data))
-    
-@app.route('/translation')
-def translation():
-    ai = AI_information()
-    info = ai.info()
-    rs = request.args.get('result')
-    data = request.args.get('data')
-    return render_template('translation.html', rs=rs, data=data, info=info)
+        st.title(f"Mia xin {greeting}")
 
-if __name__ == '__main__':
-    app.run(debug=True)
+        # Người dùng nhập prompt
+        prompt = st.text_area("Bạn muốn hỏi Mia điều gì?", "")
+
+        if st.button("Tạo câu trả lời"):
+
+            with st.spinner('Bạn chờ xíu nhé! Mia trả lời ngay thôi'):
+                time.sleep(10)
+            # Tạo câu trả lời từ OpenAI
+            response = generate_response(prompt)
+
+            # Hiển thị câu trả lời
+            st.text("Câu trả lời từ trợ lý ảo Mia:")
+            st.write(response)
+
+def generate_response(prompt):
+    messages = [
+            {"role": "system", "content": "You are a helpful language learning assistant"},
+            {"role": "user", "content": prompt},
+            {"role": "assistant", "content": "Your name is Mia. You are a helpful English learning assistant.You are only allowed to talk about learning English. And you always return answers in Vietnamese"}
+        ]
+    # Sử dụng OpenAI để lấy phản hồi từ ChatGPT
+    response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=messages
+)
+    return response['choices'][0]['message']['content'].strip()
+
+if __name__ == "__main__":
+    main()
